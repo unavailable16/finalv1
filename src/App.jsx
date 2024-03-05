@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Nav from "./Component/Main_Page/Navbar";
 import Main from "./Component/Main_Page/Main";
 import About from "./Component/About/About.jsx";
@@ -13,7 +13,8 @@ import Create from "./Component/Create/Create.jsx";
 import Search from "./Component/Search/Search.jsx";
 import Login from "./Component/Login/Login.jsx";
 import Signup from "./Component/Login/Signup.jsx";
-import { AuthProvider, useAuth } from "./Component/AuthContext.jsx";
+import { AuthProvider } from "./Component/AuthContext.jsx";
+import PrivateRoute from "./PrivateRoute";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -50,11 +51,5 @@ function App() {
     </div>
   );
 }
-
-const PrivateRoute = ({ component }) => {
-  const { isLoggedIn } = useAuth();
-
-  return isLoggedIn ? component : <Navigate to="/login" />;
-};
 
 export default App;
