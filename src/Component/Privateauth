@@ -1,18 +1,19 @@
-import React from 'react';
-import { Route, Redirect } from 'react-router-dom';
-import { useAuth } from './AuthContext'; // Import your AuthContext
+import React from "react";
+import { Route, Navigate } from "react-router-dom";
+import { useAuth } from "./Component/AuthContext.jsx";
 
-const PrivateRoute = ({ component: Component, ...rest }) => {
-  const { isLoggedIn } = useAuth(); // Get isLoggedIn state from AuthContext
+const PrivateRoute = ({ component }) => {
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
-  return (
-    <Route
-      {...rest}
-      render={(props) =>
-        isLoggedIn ? <Component {...props} /> : <Redirect to="/login" />
-      }
-    />
-  );
+  if (!isLoggedIn) {
+    // If the user is not logged in, show alert and navigate to login page
+    alert("You must log in first.");
+    navigate("/login");
+    return null; // Render nothing while navigating
+  }
+
+  return component;
 };
 
 export default PrivateRoute;
