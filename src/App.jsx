@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { createContext, useContext, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Nav from "./Component/Main_Page/Navbar";
 import Main from "./Component/Main_Page/Main";
 import About from "./Component/About/About.jsx";
@@ -11,16 +11,45 @@ import IntelPage from "./Component/intel/IntelPage";
 import AmdPage from "./Component/amd/AmdPage";
 import Create from "./Component/Create/Create.jsx";
 import Search from "./Component/Search/Search.jsx";
-import Login from "./Component/Login/Login.jsx";
-import Signup from "./Component/Login/Signup.jsx";
-import { AuthProvider } from "./Component/AuthContext.jsx";
-import PrivateRoute from "./PrivateRoute";
-
 import AOS from "aos";
 import "aos/dist/aos.css";
 import "./App.css";
 
+// Authentication Context
+const AuthContext = createContext();
+
+// AuthProvider Component
+const AuthProvider = ({ children }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const login = () => {
+    setIsLoggedIn(true);
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+  };
+
+  return (
+    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// useAuth Hook
+const useAuth = () => useContext(AuthContext);
+
+// Private Route Component
+const PrivateRoute = ({ element, ...rest }) => {
+  const { isLoggedIn } = useAuth();
+
+  return isLoggedIn ? <Route {...rest} element={element} /> : <Navigate to="/login" />;
+};
+
 function App() {
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
   useEffect(() => {
     AOS.init();
   }, []);
@@ -29,23 +58,45 @@ function App() {
     window.scrollTo(0, 0);
   }, []);
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollButton(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <div className="App">
       <Router>
         <Nav className="awok" />
+        {showScrollButton && (
+          <button className="scroll-to-top" onClick={scrollToTop}>
+            Scroll to Top
+          </button>
+        )}
         <Routes>
-          <Route path="home" element={<PrivateRoute component={<Main />} />} />
-          <Route path="about" element={<PrivateRoute component={<About />} />} />
-          <Route path="amd" element={<PrivateRoute component={<AmdPages />} />} />
-          <Route path="amd/:id" element={<PrivateRoute component={<AmdPage />} />} />
-          <Route path="nvd" element={<PrivateRoute component={<NvidiaPages />} />} />
-          <Route path="nvidia/:id" element={<PrivateRoute component={<NvPage />} />} />
-          <Route path="intel" element={<PrivateRoute component={<IntelPages />} />} />
-          <Route path="intel/:id" element={<PrivateRoute component={<IntelPage />} />} />
-          <Route path="create" element={<PrivateRoute component={<Create />} />} />
-          <Route path="search" element={<PrivateRoute component={<Search />} />} />
-          <Route index element={<Login />} />
-          <Route path="sign" element={<Signup />} />
+          <Route index element={<Main />} />
+          <Route path="about" element={<About />} />
+          <Route path="amd" element={<AmdPages />} />
+          <Route path="amd/:id" element={<AmdPage />} />
+          <Route path="nvd" element={<NvidiaPages />} />
+          <Route path="nvidia/:id" element={<NvPage />} />
+          <Route path="intel" element={<IntelPages />} />
+          <Route path="intel/:id" element={<IntelPage />} />
+          <PrivateRoute path="create" element={<Create />} />
+          <PrivateRoute path="search" element={<Search />} />
         </Routes>
       </Router>
     </div>
